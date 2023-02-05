@@ -6,11 +6,12 @@
       action-state (require :telescope.actions.state)
       themes (require :telescope.themes)
       sesh (require :sesh)
-      {: delete : load} sesh
-      sessions-info (sesh.read_sessions_info)
+      {: delete : load : read_opts} sesh
       {:values conf} (require :telescope.config)]
   (fn sesh-telescope [opts]
     (local opts (vim.tbl_extend :keep (or opts []) (themes.get_dropdown)))
+    (local sessions-info
+           (vim.fn.json_decode (vim.fn.readfile (. (read_opts) :sessions_info))))
 
     (fn attach_mappings [prompt-buf# map]
       (map :n :d (fn []

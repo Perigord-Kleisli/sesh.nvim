@@ -7,7 +7,7 @@
 (var sessions-info (vim.fn.json_decode (vim.fn.readfile opts.sessions_info)))
 
 (fn read_sessions_info []
-  sessions-info)
+  (vim.fn.json_decode (vim.fn.readfile opts.sessions_info)))
 
 (var cur-session nil)
 (fn opened_session []
@@ -21,7 +21,7 @@
   (each [k _ (vim.fs.dir opts.session_path)]
     (var curdir nil)
     (var buffers [])
-    (var focused "")
+    (var focused nil)
     (each [line (io.lines (.. opts.session_path k))]
       (match (string.match line "^cd%s+(.*)$")
         x (set curdir x))
@@ -43,10 +43,11 @@
                    {:prompt (.. "Error: Session path '" opts.session_path
                                 "' not found. Create?")}
                    #(match $1
-                      :Yes (vim.fn.mkdir opts.session_path :p)
+                      :Yes (do
+                             (vim.fn.mkdir opts.session_path :p)
+                             (update_sessions_info))
                       :No (error (.. "Session path: '" (. opts :session_path)
                                      "' not found")))))
-  (update_sessions_info)
   (when opts.autosave.enable
     (vim.api.nvim_create_autocmd (vim.tbl_flatten [:VimLeave
                                                    opts.autosave.autocmds])
@@ -98,8 +99,8 @@
                         :Yes (do
                                (vim.cmd.mksession {:args [cur-session]
                                                    :bang true})
-                               (vim.notify (.. "Saved session: " cur-session))))))
-  (update_sessions_info))
+                               (vim.notify (.. "Saved session: " cur-session))
+                               (update_sessions_info))))))
 
 (lambda switch [selection]
   (when (and opts.autosave (not= nil cur-session))
@@ -154,17 +155,19 @@
   (if (= nil selection)
       (vim.ui.select (list) {:prompt "Delete session: "}
                      #(if $1 (delete $1) nil))
-      (= nil (next (vim.fs.find selection opts.session_path)))
-      (error (.. "Session '" selection "' does not exist"))
+      (= nil (next (vim.fs.find selection {:path opts.session_path})))
+      (error (.. "Session '" (selection) "' does not exist"))
       (let [session (.. opts.session_path selection)]
         (vim.ui.select ["Yes (this cannot be undone)" :No]
                        {:prompt (.. "Delete session '" session "'?")}
                        #(match $1
                           :No nil
                           _ (do
+                              (when (= session cur-session)
+                                (set cur-session nil))
                               (os.remove session)
-                              (vim.notify (.. "Deleted session: " session))
-                              (set cur-session nil)))))))
+                              (update_sessions_info)
+                              (vim.notify (.. "Deleted session: " session))))))))
 
 {: save
  : setup
@@ -172,7 +175,7 @@
  : list
  : delete
  : opened_session
+ : read_sessions_info
  : switch
  : read_opts
- : read_sessions_info
  : update_sessions_info}
