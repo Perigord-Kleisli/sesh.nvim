@@ -64,12 +64,22 @@ local function setup(user_opts)
   else
   end
   if ("" == vim.fn.finddir(opts.session_path)) then
-    vim.notify(("Session path: '" .. opts.session_path .. "' not found"), "error")
+    local function _10_(_241)
+      local _11_ = _241
+      if (_11_ == "Yes") then
+        return vim.fn.mkdir(opts.session_path, "p")
+      elseif (_11_ == "No") then
+        return error(("Session path: '" .. opts.session_path .. "' not found"))
+      else
+        return nil
+      end
+    end
+    vim.ui.select({"Yes", "No"}, {prompt = ("Error: Session path '" .. opts.session_path .. "' not found. Create?")}, _10_)
   else
   end
   update_sessions_info()
   if opts.autosave.enable then
-    local function _11_()
+    local function _14_()
       if cur_session then
         vim.cmd.mksession({args = {cur_session}, bang = true})
         return update_sessions_info()
@@ -77,7 +87,7 @@ local function setup(user_opts)
         return nil
       end
     end
-    vim.api.nvim_create_autocmd(vim.tbl_flatten({"VimLeave", opts.autosave.autocmds}), {group = vim.api.nvim_create_augroup("SessionAutosave", {}), desc = "Save session on exit and through specified autocmds in setup", callback = _11_})
+    vim.api.nvim_create_autocmd(vim.tbl_flatten({"VimLeave", opts.autosave.autocmds}), {group = vim.api.nvim_create_augroup("SessionAutosave", {}), desc = "Save session on exit and through specified autocmds in setup", callback = _14_})
   else
   end
   if (opts.autoload.enable and (0 == vim.fn.argc())) then
@@ -100,9 +110,9 @@ local function setup(user_opts)
       end
       to_load = tbl_17_auto
     end
-    local _16_ = to_load
-    if ((_G.type(_16_) == "table") and (nil ~= (_16_)[1])) then
-      local s = (_16_)[1]
+    local _19_ = to_load
+    if ((_G.type(_19_) == "table") and (nil ~= (_19_)[1])) then
+      local s = (_19_)[1]
       cur_session = s
       return vim.cmd.source(s)
     else
@@ -130,7 +140,7 @@ local function create()
     error(("Session path: '" .. opts.session_path .. "' not found"))
   else
   end
-  local function _21_(_241)
+  local function _24_(_241)
     local session = (opts.session_path .. _241)
     if (nil == next(vim.fs.find(_241, {path = opts.session_path}))) then
       vim.cmd.mksession({args = {session}})
@@ -141,27 +151,27 @@ local function create()
       return vim.notify(("Session '" .. _241 .. "' already exists"), "warn")
     end
   end
-  return vim.ui.input({prompt = "Session Name:", default = vim.fs.basename(vim.fn.getcwd())}, _21_)
+  return vim.ui.input({prompt = "Session Name:", default = vim.fs.basename(vim.fn.getcwd())}, _24_)
 end
 local function save()
   if (nil == cur_session) then
     create()
   else
-    local function _23_(_241)
-      local _24_ = _241
-      if (_24_ == "Yes") then
+    local function _26_(_241)
+      local _27_ = _241
+      if (_27_ == "Yes") then
         vim.cmd.mksession({args = {cur_session}, bang = true})
         return vim.notify(("Saved session: " .. cur_session))
       else
         return nil
       end
     end
-    vim.ui.select({"Yes", "No"}, {prompt = ("Overwrite session '" .. vim.fs.basename(cur_session) .. "'?")}, _23_)
+    vim.ui.select({"Yes", "No"}, {prompt = ("Overwrite session '" .. vim.fs.basename(cur_session) .. "'?")}, _26_)
   end
   return update_sessions_info()
 end
 local function switch(selection)
-  _G.assert((nil ~= selection), "Missing argument selection on fnl/sesh/init.fnl:95")
+  _G.assert((nil ~= selection), "Missing argument selection on fnl/sesh/init.fnl:100")
   if (opts.autosave and (nil ~= cur_session)) then
     vim.cmd.mksession({args = {cur_session}, bang = true})
     update_sessions_info()
@@ -194,15 +204,15 @@ local function switch(selection)
     end
   end
   if has_modified then
-    local function _31_(x)
+    local function _34_(x)
       local go_on = true
       do
-        local _32_ = x
-        if (_32_ == "Yes (save buffers and switch)") then
+        local _35_ = x
+        if (_35_ == "Yes (save buffers and switch)") then
           vim.cmd("wall!")
-        elseif (_32_ == "Yes (continue without saving)") then
+        elseif (_35_ == "Yes (continue without saving)") then
         elseif true then
-          local _ = _32_
+          local _ = _35_
           go_on = false
         else
         end
@@ -218,7 +228,7 @@ local function switch(selection)
         return nil
       end
     end
-    return vim.ui.select({"Yes (save buffers and switch)", "Yes (continue without saving)", "No"}, {prompt = "Modified buffers found, continue?"}, _31_)
+    return vim.ui.select({"Yes (save buffers and switch)", "Yes (continue without saving)", "No"}, {prompt = "Modified buffers found, continue?"}, _34_)
   else
     for _, v in ipairs(buffers) do
       vim.api.nvim_buf_delete(v, {force = true})
@@ -230,14 +240,14 @@ local function switch(selection)
 end
 local function load(selection)
   if (nil == selection) then
-    local function _36_(_241)
+    local function _39_(_241)
       if _241 then
         return load(_241)
       else
         return nil
       end
     end
-    return vim.ui.select(list(), {prompt = "Load session: "}, _36_)
+    return vim.ui.select(list(), {prompt = "Load session: "}, _39_)
   elseif ((opts.session_path .. selection) == cur_session) then
     return vim.notify("Already in the loaded session", "warn")
   else
@@ -253,24 +263,24 @@ local function load(selection)
 end
 local function delete(selection)
   if (nil == selection) then
-    local function _40_(_241)
+    local function _43_(_241)
       if _241 then
         return delete(_241)
       else
         return nil
       end
     end
-    return vim.ui.select(list(), {prompt = "Delete session: "}, _40_)
+    return vim.ui.select(list(), {prompt = "Delete session: "}, _43_)
   elseif (nil == next(vim.fs.find(selection, opts.session_path))) then
     return error(("Session '" .. selection .. "' does not exist"))
   else
     local session = (opts.session_path .. selection)
-    local function _42_(_241)
-      local _43_ = _241
-      if (_43_ == "No") then
+    local function _45_(_241)
+      local _46_ = _241
+      if (_46_ == "No") then
         return nil
       elseif true then
-        local _ = _43_
+        local _ = _46_
         os.remove(session)
         vim.notify(("Deleted session: " .. session))
         cur_session = nil
@@ -279,7 +289,7 @@ local function delete(selection)
         return nil
       end
     end
-    return vim.ui.select({"Yes (this cannot be undone)", "No"}, {prompt = ("Delete session '" .. session .. "'?")}, _42_)
+    return vim.ui.select({"Yes (this cannot be undone)", "No"}, {prompt = ("Delete session '" .. session .. "'?")}, _45_)
   end
 end
 return {save = save, setup = setup, load = load, list = list, delete = delete, opened_session = opened_session, switch = switch, read_opts = read_opts, read_sessions_info = read_sessions_info, update_sessions_info = update_sessions_info}

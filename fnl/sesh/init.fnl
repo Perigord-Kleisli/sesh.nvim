@@ -39,8 +39,13 @@
   (when (= nil (string.find (. opts :session_path) "/$"))
     (tset opts :session_path (.. (. opts :session_path) "/")))
   (when (= "" (vim.fn.finddir (. opts :session_path)))
-    (vim.notify (.. "Session path: '" (. opts :session_path) "' not found")
-                :error))
+    (vim.ui.select [:Yes :No]
+                   {:prompt (.. "Error: Session path '" opts.session_path
+                                "' not found. Create?")}
+                   #(match $1
+                      :Yes (vim.fn.mkdir opts.session_path :p)
+                      :No (error (.. "Session path: '" (. opts :session_path)
+                                     "' not found")))))
   (update_sessions_info)
   (when opts.autosave.enable
     (vim.api.nvim_create_autocmd (vim.tbl_flatten [:VimLeave
