@@ -20,6 +20,8 @@
 
 # Sesh.nvim
 
+![Usage](./data/Sample.gif)
+
 ## Installation
 
 Telescope is optional but is recommended
