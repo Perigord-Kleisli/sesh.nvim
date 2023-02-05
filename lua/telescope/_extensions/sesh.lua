@@ -10,9 +10,11 @@ local _let_1_ = sesh
 local delete = _let_1_["delete"]
 local load = _let_1_["load"]
 local read_opts = _let_1_["read_opts"]
+local update_sessions_info = _let_1_["update_sessions_info"]
 local _let_2_ = require("telescope.config")
 local conf = _let_2_["values"]
 local function sesh_telescope(opts)
+  update_sessions_info()
   local opts0 = vim.tbl_extend("keep", (opts or {}), themes.get_dropdown())
   local sessions_info = vim.fn.json_decode(vim.fn.readfile(read_opts().sessions_info))
   local function attach_mappings(prompt_buf_23, map)
@@ -41,7 +43,7 @@ local function sesh_telescope(opts)
   local function define_preview(self, entry, _status)
     local session = sessions_info[entry.value]
     local function indent(x)
-      _G.assert((nil ~= x), "Missing argument x on fnl/telescope/_extensions/sesh.fnl:33")
+      _G.assert((nil ~= x), "Missing argument x on fnl/telescope/_extensions/sesh.fnl:34")
       return (string.rep(" ", vim.o.shiftwidth) .. x)
     end
     local display = {}

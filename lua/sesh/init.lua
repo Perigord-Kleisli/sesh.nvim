@@ -1,5 +1,5 @@
 local opts = {autosave = {autocmds = {}, enable = false}, autoswitch = {enable = true, exclude_ft = {}}, sessions_info = (vim.fn.stdpath("data") .. "/sessions-info.json"), session_path = (vim.fn.stdpath("data") .. "/sessions"), autoload = false}
-local sessions_info = vim.fn.json_decode(vim.fn.readfile(opts.sessions_info))
+local sessions_info = nil
 local function read_sessions_info()
   return vim.fn.json_decode(vim.fn.readfile(opts.sessions_info))
 end
@@ -90,7 +90,7 @@ local function setup(user_opts)
     vim.api.nvim_create_autocmd(vim.tbl_flatten({"VimLeave", opts.autosave.autocmds}), {group = vim.api.nvim_create_augroup("SessionAutosave", {}), desc = "Save session on exit and through specified autocmds in setup", callback = _14_})
   else
   end
-  if (opts.autoload.enable and (0 == vim.fn.argc())) then
+  if (opts.autoload.enable and (nil ~= sessions_info) and (0 == vim.fn.argc())) then
     local to_load
     do
       local tbl_17_auto = {}
@@ -114,13 +114,14 @@ local function setup(user_opts)
     if ((_G.type(_19_) == "table") and (nil ~= (_19_)[1])) then
       local s = (_19_)[1]
       cur_session = s
-      return vim.cmd.source(s)
+      vim.cmd.source(s)
     else
-      return nil
     end
   else
-    return nil
   end
+  update_sessions_info()
+  sessions_info = vim.fn.json_decode(vim.fn.readfile(opts.sessions_info))
+  return nil
 end
 local function list()
   local tbl_17_auto = {}
@@ -176,7 +177,7 @@ local function save()
   end
 end
 local function switch(selection)
-  _G.assert((nil ~= selection), "Missing argument selection on fnl/sesh/init.fnl:105")
+  _G.assert((nil ~= selection), "Missing argument selection on fnl/sesh/init.fnl:107")
   if (opts.autosave and (nil ~= cur_session)) then
     vim.cmd.mksession({args = {cur_session}, bang = true})
     update_sessions_info()

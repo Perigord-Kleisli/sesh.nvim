@@ -4,7 +4,7 @@
            :sessions_info (.. (vim.fn.stdpath :data) :/sessions-info.json)
            :session_path (.. (vim.fn.stdpath :data) :/sessions)})
 
-(var sessions-info (vim.fn.json_decode (vim.fn.readfile opts.sessions_info)))
+(var sessions-info nil)
 
 (fn read_sessions_info []
   (vim.fn.json_decode (vim.fn.readfile opts.sessions_info)))
@@ -58,7 +58,7 @@
                                                (vim.cmd.mksession {:args [cur-session]
                                                                    :bang true})
                                                (update_sessions_info))}))
-  (when (and opts.autoload.enable (= 0 (vim.fn.argc)))
+  (when (and opts.autoload.enable (not= nil sessions-info) (= 0 (vim.fn.argc)))
     (local to-load (icollect [k v (pairs sessions-info)]
                      (if (= (vim.fn.getcwd) (vim.fn.expand v.curdir))
                          (.. opts.session_path k)
@@ -66,7 +66,9 @@
     (match to-load
       [s] (do
             (set cur-session s)
-            (vim.cmd.source s)))))
+            (vim.cmd.source s))))
+  (update_sessions_info)
+  (set sessions-info (vim.fn.json_decode (vim.fn.readfile opts.sessions_info))))
 
 (fn list []
   (icollect [k _ (vim.fs.dir opts.session_path)]
