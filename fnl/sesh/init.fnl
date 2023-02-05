@@ -76,13 +76,17 @@
     (error (.. "Session path: '" (. opts :session_path) "' not found")))
   (vim.ui.input {:prompt "Session Name:"
                  :default (vim.fs.basename (vim.fn.getcwd))}
-                #(let [session (.. opts.session_path $1)]
-                   (if (= nil (next (vim.fs.find $1 {:path opts.session_path})))
-                       (do
-                         (vim.cmd.mksession {:args [session]})
-                         (vim.notify (.. "Made session: " session))
-                         (set cur-session session))
-                       (vim.notify (.. "Session '" $1 "' already exists") :warn)))))
+                #(when (not= nil $1)
+                   (let [session (.. opts.session_path $1)]
+                     (if (= nil
+                            (next (vim.fs.find $1 {:path opts.session_path})))
+                         (do
+                           (vim.cmd.mksession {:args [session]})
+                           (vim.notify (.. "Made session: " session))
+                           (update_sessions_info)
+                           (set cur-session session))
+                         (vim.notify (.. "Session '" $1 "' already exists")
+                                     :warn))))))
 
 (fn save []
   (if (= nil cur-session)
