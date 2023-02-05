@@ -1,0 +1,10 @@
+Sesh.nvim	sesh	/*Sesh.nvim*
+sesh.delete()	sesh	/*sesh.delete()*
+sesh.list()	sesh	/*sesh.list()*
+sesh.load()	sesh	/*sesh.load()*
+sesh.opened_session()	sesh	/*sesh.opened_session()*
+sesh.read_opts()	sesh	/*sesh.read_opts()*
+sesh.read_sessions_info()	sesh	/*sesh.read_sessions_info()*
+sesh.save()	sesh	/*sesh.save()*
+sesh.switch()	sesh	/*sesh.switch()*
+sesh.update_sessions_info()	sesh	/*sesh.update_sessions_info()*
