@@ -9,11 +9,12 @@ local sesh = require("sesh")
 local _let_1_ = sesh
 local delete = _let_1_["delete"]
 local load = _let_1_["load"]
-local sessions_info = sesh.read_sessions_info()
+local read_opts = _let_1_["read_opts"]
 local _let_2_ = require("telescope.config")
 local conf = _let_2_["values"]
 local function sesh_telescope(opts)
   local opts0 = vim.tbl_extend("keep", (opts or {}), themes.get_dropdown())
+  local sessions_info = vim.fn.json_decode(vim.fn.readfile(read_opts().sessions_info))
   local function attach_mappings(prompt_buf_23, map)
     local function _3_()
       local _local_4_ = action_state.get_selected_entry()
@@ -21,7 +22,7 @@ local function sesh_telescope(opts)
       actions.close(prompt_buf_23)
       return delete(selection)
     end
-    map("n", "d", _3_)
+    map("n", "x", _3_)
     local function _5_()
       local _local_6_ = action_state.get_selected_entry()
       local selection = _local_6_[1]
@@ -38,19 +39,42 @@ local function sesh_telescope(opts)
     return (actions.select_default):replace(_7_)
   end
   local function define_preview(self, entry, _status)
-    local _local_9_ = sessions_info[entry.value]
-    local buffers = _local_9_["buffers"]
-    local curdir = _local_9_["curdir"]
-    local focused = _local_9_["focused"]
+    local session = sessions_info[entry.value]
     local function indent(x)
-      return (string.rep(" ", vim.o.shiftwidth) .. (x or ""))
+      _G.assert((nil ~= x), "Missing argument x on fnl/telescope/_extensions/sesh.fnl:33")
+      return (string.rep(" ", vim.o.shiftwidth) .. x)
     end
-    local display = {"Working Directory:", indent(curdir), "", "Focused Buffer:", indent(focused), "", "Open Buffers: "}
-    for _, v in ipairs(buffers) do
-      table.insert(display, indent(v))
+    local display = {}
+    do
+      local _9_ = session.curdir
+      if (nil ~= _9_) then
+        local x = _9_
+        table.insert(display, {"Working Directory:", indent(x), ""})
+      else
+      end
+    end
+    do
+      local _11_ = session.focused
+      if (nil ~= _11_) then
+        local x = _11_
+        table.insert(display, {"Focused Buffer:", indent(x), ""})
+      else
+      end
+    end
+    do
+      local _13_ = session.buffers
+      local function _14_()
+        local x = _13_
+        return (1 <= #x)
+      end
+      if ((nil ~= _13_) and _14_()) then
+        local x = _13_
+        table.insert(display, {"Open Buffers:", vim.tbl_map(indent, x)})
+      else
+      end
     end
     vim.api.nvim_buf_set_option(self.state.bufnr, "filetype", "yaml")
-    vim.api.nvim_buf_set_lines(self.state.bufnr, 0, -1, false, display)
+    vim.api.nvim_buf_set_lines(self.state.bufnr, 0, -1, false, vim.tbl_flatten(display))
     self.state.last_set_bufnr = self.state.bufnr
     return nil
   end

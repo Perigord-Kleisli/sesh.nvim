@@ -74,7 +74,7 @@ From there you can call `Telescope sesh` or via lua `require('telescope').extens
 
 | mode | bind    | action                             |
 | ---- | ------- | ---------------------------------- |
-| `n`  | `d`     | calls `sesh.delete()` on selection |
+| `n`  | `x`     | calls `sesh.delete()` on selection |
 | `i`  | `<A-x>` | calls `sesh.delete()` on selection |
 | `*`  | `<CR>`  | calls `sesh.load()` on selection   |
 

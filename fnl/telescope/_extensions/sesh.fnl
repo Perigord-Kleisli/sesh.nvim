@@ -14,7 +14,7 @@
            (vim.fn.json_decode (vim.fn.readfile (. (read_opts) :sessions_info))))
 
     (fn attach_mappings [prompt-buf# map]
-      (map :n :d (fn []
+      (map :n :x (fn []
                    (local [selection] (action-state.get_selected_entry))
                    (actions.close prompt-buf#)
                    (delete selection)))
