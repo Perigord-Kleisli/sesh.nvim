@@ -29,23 +29,20 @@
                                         (load selection))))
 
     (fn define_preview [self entry _status]
-      (local {: buffers : curdir : focused} (. sessions-info entry.value))
-
-      (fn indent [x]
-        (.. (string.rep " " vim.o.shiftwidth) (or x "")))
-
-      (var display ["Working Directory:"
-                    (indent curdir)
-                    ""
-                    "Focused Buffer:"
-                    (indent focused)
-                    ""
-                    "Open Buffers: "])
-      (each [_ v (ipairs buffers)]
-        (table.insert display (indent v)))
-
+      (local session (. sessions-info entry.value))
+      (lambda indent [x]
+        (.. (string.rep " " vim.o.shiftwidth) x))
+      (var display [])
+      (match session.curdir
+        x (table.insert display ["Working Directory:" (indent x) ""]))
+      (match session.focused
+        x (table.insert display ["Focused Buffer:" (indent x) ""]))
+      (match session.buffers
+        (where x (<= 1 (length x)))
+        (table.insert display ["Open Buffers:" (vim.tbl_map indent x)]))
       (vim.api.nvim_buf_set_option self.state.bufnr :filetype :yaml)
-      (vim.api.nvim_buf_set_lines self.state.bufnr 0 -1 false display)
+      (vim.api.nvim_buf_set_lines self.state.bufnr 0 -1 false
+                                  (vim.tbl_flatten display))
       (set self.state.last_set_bufnr self.state.bufnr))
 
     (local picker (pickers.new opts
