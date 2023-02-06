@@ -58,6 +58,7 @@
                                                (vim.cmd.mksession {:args [cur-session]
                                                                    :bang true})
                                                (update_sessions_info))}))
+  (update_sessions_info)
   (when (and opts.autoload.enable (not= nil sessions-info) (= 0 (vim.fn.argc)))
     (local to-load (icollect [k v (pairs sessions-info)]
                      (if (= (vim.fn.getcwd) (vim.fn.expand v.curdir))
@@ -67,7 +68,6 @@
       [s] (do
             (set cur-session s)
             (vim.cmd.source s))))
-  (update_sessions_info)
   (set sessions-info (vim.fn.json_decode (vim.fn.readfile opts.sessions_info))))
 
 (fn list []

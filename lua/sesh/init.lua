@@ -90,6 +90,7 @@ local function setup(user_opts)
     vim.api.nvim_create_autocmd(vim.tbl_flatten({"VimLeave", opts.autosave.autocmds}), {group = vim.api.nvim_create_augroup("SessionAutosave", {}), desc = "Save session on exit and through specified autocmds in setup", callback = _14_})
   else
   end
+  update_sessions_info()
   if (opts.autoload.enable and (nil ~= sessions_info) and (0 == vim.fn.argc())) then
     local to_load
     do
@@ -119,7 +120,6 @@ local function setup(user_opts)
     end
   else
   end
-  update_sessions_info()
   sessions_info = vim.fn.json_decode(vim.fn.readfile(opts.sessions_info))
   return nil
 end
