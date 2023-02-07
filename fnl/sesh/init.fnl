@@ -2,7 +2,8 @@
            :autoload false
            :autoswitch {:enable true :exclude_ft []}
            :sessions_info (.. (vim.fn.stdpath :data) :/sessions-info.json)
-           :session_path (.. (vim.fn.stdpath :data) :/sessions)})
+           :session_path (.. (vim.fn.stdpath :data) :/sessions)
+           :post_load_hook (fn [])})
 
 (var sessions-info nil)
 
@@ -67,7 +68,8 @@
     (match to-load
       [s] (do
             (set cur-session s)
-            (vim.cmd.source s))))
+            (vim.cmd.source s)
+            (opts.post_load_hook))))
   (set sessions-info (vim.fn.json_decode (vim.fn.readfile opts.sessions_info))))
 
 (fn list []
@@ -88,8 +90,17 @@
                            (vim.notify (.. "Made session: " session))
                            (update_sessions_info)
                            (set cur-session session))
-                         (vim.notify (.. "Session '" $1 "' already exists")
-                                     :warn))))))
+                         (vim.ui.select [:Yes :No]
+                                        {:prompt (.. "Session '" $1
+                                                     "' already exists but isnt loaded, overwrite?")}
+                                        #(match $1
+                                           :Yes (do
+                                                  (vim.cmd.mksession {:args [session]
+                                                                      :bang true})
+                                                  (vim.notify (.. "Saved session: "
+                                                                  session))
+                                                  (set cur-session session)
+                                                  (update_sessions_info)))))))))
 
 (fn save []
   (if (= nil cur-session)
@@ -151,7 +162,8 @@
         (if opts.autoswitch
             (switch selection)
             (vim.cmd.source session))
-        (set cur-session session))))
+        (set cur-session session)
+        (opts.post_load_hook))))
 
 (fn delete [selection]
   (if (= nil selection)
