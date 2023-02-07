@@ -1,4 +1,5 @@
 <!--toc:start-->
+
 - [Sesh.nvim](#seshnvim)
   - [Installation](#installation)
   - [Configuration](#configuration)
@@ -55,8 +56,39 @@ Telescope is optional but is recommended
         -- Location of the json file containing session infos
       session_path = vim.fn.stdpath('data') .. "/sesions"
         -- Location of stored session files
+      post_load_hook = function() end 
+        -- Run functions on load
+      exclude_name = {} -- Automatically remove buffers with this name, see ## Exclude Name
+      -- ^ USE THIS OPTION WITH CAUTION
     })
 ```
+
+## Exclude Name
+
+the `exclude_name` option automatically removes buffers of that name from created session files.
+
+### Caveats
+
+- This option is highly dangerous as it simply removes all lines containing names listed. When a name consisting of a vim command i.e. `bufadd`, `edit`, etc. is passed then loading them may be fail or be broken.
+
+- This option does not close the windows of the deleted buffers. When loading you may see multiple blank windows.
+
+- This is a hacky solution but it can be used to automatically close all empty buffers on load
+```lua 
+post_load_hook = function()
+  for _, buf in ipairs(vim.api.nvim_list_bufs()) do
+    if ("" == vim.api.nvim_buf_get_option(buf, "filetype")) then
+      vim.api.nvim_buf_delete(buf, {})
+    end
+  end
+end
+```
+
+- When using [nvim-tree.lua](https://github.com/nvim-tree/nvim-tree.lua) and [symbols-outline.nvim](https://github.com/simrat39/symbols-outline.nvim) you can use 
+```lua
+exclude_name = {'NvimTree_1', 'OUTLINE'}
+```
+as well as the `post_load_hook` defined above.
 
 ## Telescope Integration
 

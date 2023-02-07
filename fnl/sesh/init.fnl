@@ -3,6 +3,7 @@
            :autoswitch {:enable true :exclude_ft []}
            :sessions_info (.. (vim.fn.stdpath :data) :/sessions-info.json)
            :session_path (.. (vim.fn.stdpath :data) :/sessions)
+           :exclude_name []
            :post_load_hook (fn [])})
 
 (var sessions-info nil)
@@ -16,6 +17,19 @@
 
 (fn read_opts []
   opts)
+
+(fn remove-excluded-fts []
+  (when (not (vim.tbl_isempty opts.exclude_name))
+    (local lines (icollect [line (io.lines cur-session)]
+                   (do
+                     (var found false)
+                     (each [_ v (ipairs opts.exclude_name)]
+                       (when (string.find line v)
+                         (set found true)))
+                     (if found nil line))))
+    (with-open [file (io.open cur-session :w+)]
+      (each [_ line (ipairs lines)]
+        (file:write (.. line "\n"))))))
 
 (fn update_sessions_info []
   (var session-info* [])
@@ -58,6 +72,7 @@
                                   :callback #(when cur-session
                                                (vim.cmd.mksession {:args [cur-session]
                                                                    :bang true})
+                                               (remove-excluded-fts)
                                                (update_sessions_info))}))
   (update_sessions_info)
   (when (and opts.autoload.enable (not= nil sessions-info) (= 0 (vim.fn.argc)))
@@ -88,6 +103,7 @@
                          (do
                            (vim.cmd.mksession {:args [session]})
                            (vim.notify (.. "Made session: " session))
+                           (remove-excluded-fts)
                            (update_sessions_info)
                            (set cur-session session))
                          (vim.ui.select [:Yes :No]
@@ -100,6 +116,7 @@
                                                   (vim.notify (.. "Saved session: "
                                                                   session))
                                                   (set cur-session session)
+                                                  (remove-excluded-fts)
                                                   (update_sessions_info)))))))))
 
 (fn save []
@@ -113,11 +130,13 @@
                                (vim.cmd.mksession {:args [cur-session]
                                                    :bang true})
                                (vim.notify (.. "Saved session: " cur-session))
+                               (remove-excluded-fts)
                                (update_sessions_info))))))
 
 (lambda switch [selection]
   (when (and opts.autosave (not= nil cur-session))
     (vim.cmd.mksession {:args [cur-session] :bang true})
+    (remove-excluded-fts)
     (update_sessions_info))
   (local buffers (icollect [_ buf (ipairs (vim.api.nvim_list_bufs))]
                    (if (and (vim.api.nvim_buf_is_valid buf)
